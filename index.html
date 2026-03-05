@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TradeHub — Trading Dashboard</title>
+
+  <!-- Preconnect -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="./base.css">
+  <link rel="stylesheet" href="./style.css">
+
+  <!-- PWA -->
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#0f1119">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="TradeHub">
+  <link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png">
+
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23D4A843'/><text x='50%25' y='55%25' text-anchor='middle' dominant-baseline='central' font-family='Inter,sans-serif' font-weight='800' font-size='18' fill='%230f1119'>TH</text></svg>">
+</head>
+<body>
+  <!-- ===== LOGIN SCREEN ===== -->
+  <div class="login-overlay" id="loginOverlay">
+    <div class="login-card">
+      <svg width="48" height="48" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="TradeHub Logo" style="margin:0 auto">
+        <rect x="2" y="6" width="28" height="20" rx="3" fill="none" stroke="#D4A843" stroke-width="2"/>
+        <path d="M7 22 L7 12 L12 12" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M16 22 L16 12 M16 17 L22 17 M22 22 L22 12" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <h1 class="login-title">TradeHub</h1>
+      <p class="login-subtitle">Inserisci la password per accedere</p>
+      <form id="loginForm" onsubmit="return handleLogin(event)">
+        <div class="login-input-group">
+          <input type="password" id="loginPassword" class="login-input" placeholder="Password" autocomplete="current-password" autofocus>
+          <button type="submit" class="login-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+        <p class="login-error" id="loginError"></p>
+      </form>
+    </div>
+  </div>
+
+  <div class="dashboard" id="dashboardMain" style="display:none">
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <!-- TradeHub Logo: gold bar forming TH -->
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="TradeHub Logo">
+          <!-- Gold bar base shape -->
+          <rect x="2" y="6" width="28" height="20" rx="3" fill="none" stroke="#D4A843" stroke-width="2"/>
+          <!-- T letter from chart line going up -->
+          <path d="M7 22 L7 12 L12 12" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <!-- H letter as market movement -->
+          <path d="M16 22 L16 12 M16 17 L22 17 M22 22 L22 12" stroke="#D4A843" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <!-- Small chart accent line -->
+          <path d="M25 20 L27 16 L29 18" stroke="#D4A843" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+        </svg>
+        <span>TradeHub</span>
+      </div>
+
+      <nav class="sidebar-nav" role="navigation" aria-label="Navigazione principale">
+        <a href="#news" class="nav-item active" data-page="news">
+          <i data-lucide="newspaper"></i>
+          <span>Notizie</span>
+        </a>
+        <a href="#geopolitics" class="nav-item" data-page="geopolitics">
+          <i data-lucide="globe-2"></i>
+          <span>Geopolitica</span>
+        </a>
+        <a href="#assets" class="nav-item" data-page="assets">
+          <i data-lucide="bar-chart-3"></i>
+          <span>Asset</span>
+        </a>
+        <a href="#journal" class="nav-item" data-page="journal">
+          <i data-lucide="book-open"></i>
+          <span>Diario Trading</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <div class="user-avatar">M</div>
+          <div>
+            <div style="font-weight:600;color:var(--text-primary)">Mattia</div>
+            <div style="font-size:10px">Gold Trader</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ===== HEADER ===== -->
+    <header class="header">
+      <div class="header-left">
+        <button class="mobile-menu-toggle" aria-label="Menu" onclick="toggleMobileMenu()">
+          <i data-lucide="menu" style="width:20px;height:20px"></i>
+        </button>
+        <div>
+          <div class="header-title" id="headerTitle">Notizie Finanziarie</div>
+          <div class="header-subtitle" id="headerSubtitle">Panoramica mercati globali</div>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="header-clock">
+          <div class="pulse"></div>
+          <span id="liveClock">02:59 CET</span>
+        </div>
+        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Cambia tema">
+          <i data-lucide="moon" id="themeIcon" style="width:18px;height:18px"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <main class="main" id="mainContent">
+
+      <!-- ========== PAGE: NOTIZIE ========== -->
+      <div class="page active" id="page-news">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">📰 Notizie Finanziarie Globali</h1>
+            <p class="page-meta" id="newsTimestamp">Ultimo aggiornamento: 03 Mar 2026, 02:55 CET</p>
+          </div>
+          <button class="btn btn-secondary" onclick="refreshNews()">
+            <i data-lucide="refresh-cw" style="width:16px;height:16px"></i>
+            Aggiorna Notizie
+          </button>
+        </div>
+
+        <!-- Mercati Globali -->
+        <div class="news-category">
+          <div class="category-header" data-category="global">
+            <div class="category-icon icon-global">
+              <i data-lucide="trending-up" style="width:18px;height:18px"></i>
+            </div>
+            <span class="category-title">📊 Mercati Globali</span>
+          </div>
+          <div class="grid-3" id="newsGlobal"></div>
+        </div>
+
+        <!-- Materie Prime -->
+        <div class="news-category">
+          <div class="category-header" data-category="commodities">
+            <div class="category-icon icon-commodities">
+              <i data-lucide="gem" style="width:18px;height:18px"></i>
+            </div>
+            <span class="category-title">🪨 Materie Prime</span>
+          </div>
+          <div class="grid-3" id="newsCommodities"></div>
+        </div>
+
+        <!-- Criptovalute -->
+        <div class="news-category">
+          <div class="category-header" data-category="crypto">
+            <div class="category-icon icon-crypto">
+              <i data-lucide="bitcoin" style="width:18px;height:18px"></i>
+            </div>
+            <span class="category-title">₿ Criptovalute</span>
+          </div>
+          <div class="grid-3" id="newsCrypto"></div>
+        </div>
+
+        <!-- Banche Centrali -->
+        <div class="news-category">
+          <div class="category-header" data-category="centralbanks">
+            <div class="category-icon icon-centralbanks">
+              <i data-lucide="landmark" style="width:18px;height:18px"></i>
+            </div>
+            <span class="category-title">🏛️ Banche Centrali</span>
+          </div>
+          <div class="grid-3" id="newsCentralBanks"></div>
+        </div>
+      </div>
+
+      <!-- ========== PAGE: GEOPOLITICA ========== -->
+      <div class="page" id="page-geopolitics">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">🌍 Analisi Geopolitica</h1>
+            <p class="page-meta">Conflitti attivi e impatto sui mercati finanziari</p>
+          </div>
+        </div>
+
+        <!-- Conflitti Attivi -->
+        <div class="section">
+          <h2 class="section-title">
+            <i data-lucide="alert-triangle" style="width:18px;height:18px;color:var(--warning)"></i>
+            Conflitti Attivi
+          </h2>
+          <div class="conflict-map-grid" id="conflictsGrid"></div>
+        </div>
+
+        <!-- Impatto sui Mercati -->
+        <div class="section">
+          <h2 class="section-title">
+            <i data-lucide="bar-chart-2" style="width:18px;height:18px;color:var(--info)"></i>
+            Impatto sui Mercati
+          </h2>
+          <div class="grid-3" id="marketImpactGrid"></div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="section">
+          <h2 class="section-title">
+            <i data-lucide="clock" style="width:18px;height:18px;color:var(--accent)"></i>
+            Timeline Eventi Recenti
+          </h2>
+          <div class="card">
+            <div class="timeline" id="geopoliticsTimeline"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== PAGE: ASSET ========== -->
+      <div class="page" id="page-assets">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">🎯 Asset da Monitorare</h1>
+            <p class="page-meta">Prezzi, livelli chiave e sentiment in tempo reale</p>
+          </div>
+        </div>
+        <div class="asset-grid" id="assetsGrid"></div>
+      </div>
+
+      <!-- ========== PAGE: JOURNAL ========== -->
+      <div class="page" id="page-journal">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">💼 Diario di Trading</h1>
+            <p class="page-meta">Registra operazioni e monitora le performance</p>
+          </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="kpi-grid" id="journalKPIs">
+          <div class="kpi-card">
+            <div class="kpi-label">Totale Operazioni</div>
+            <div class="kpi-value" id="kpiTotal">0</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Operazioni Vinte</div>
+            <div class="kpi-value text-profit" id="kpiWins">0</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Operazioni Perse</div>
+            <div class="kpi-value text-loss" id="kpiLosses">0</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Win Rate</div>
+            <div class="kpi-value" id="kpiWinRate">0%</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Profitto Netto</div>
+            <div class="kpi-value" id="kpiNetPnl">$0.00</div>
+          </div>
+        </div>
+
+        <div class="journal-layout">
+          <!-- Form -->
+          <div class="form-card" id="tradeFormCard">
+            <div class="form-title">
+              <i data-lucide="plus-circle" style="width:18px;height:18px;color:var(--accent)"></i>
+              <span id="formTitle">Nuova Operazione</span>
+            </div>
+            <form id="tradeForm" onsubmit="return false;">
+              <input type="hidden" id="tradeId" value="">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label" for="tradeDate">Data Operazione</label>
+                  <input type="date" id="tradeDate" class="form-input" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="tradeAsset">Asset</label>
+                  <select id="tradeAsset" class="form-input form-select" required>
+                    <option value="XAU/USD">XAU/USD (Oro)</option>
+                    <option value="BTC/USD">BTC/USD (Bitcoin)</option>
+                    <option value="EUR/USD">EUR/USD</option>
+                    <option value="Petrolio">Petrolio</option>
+                    <option value="S&P500">S&P 500</option>
+                    <option value="Altro">Altro</option>
+                  </select>
+                </div>
+                <div class="form-group full">
+                  <label class="form-label">Tipo</label>
+                  <div class="toggle-group">
+                    <button type="button" class="toggle-btn active-buy" id="btnBuy" onclick="setTradeType('BUY')">BUY</button>
+                    <button type="button" class="toggle-btn" id="btnSell" onclick="setTradeType('SELL')">SELL</button>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="tradeEntry">Prezzo Entrata</label>
+                  <input type="number" step="any" id="tradeEntry" class="form-input" placeholder="0.00" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="tradeExit">Prezzo Uscita</label>
+                  <input type="number" step="any" id="tradeExit" class="form-input" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="tradeSL">Stop Loss</label>
+                  <input type="number" step="any" id="tradeSL" class="form-input" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="tradeTP">Take Profit</label>
+                  <input type="number" step="any" id="tradeTP" class="form-input" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="tradeLot">Lotti / Size</label>
+                  <input type="number" step="any" id="tradeLot" class="form-input" placeholder="0.01" value="1">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Risultato ($)</label>
+                  <div class="pnl-display" id="pnlPreview">$0.00</div>
+                </div>
+                <div class="form-group full">
+                  <label class="form-label" for="tradeNotes">Note</label>
+                  <textarea id="tradeNotes" class="form-input" placeholder="Strategia, setup, osservazioni..."></textarea>
+                </div>
+                <div class="form-group full">
+                  <button type="button" class="btn btn-primary w-full" onclick="saveTrade()" id="saveTradeBtn">
+                    <i data-lucide="save" style="width:16px;height:16px"></i>
+                    Salva Operazione
+                  </button>
+                </div>
+                <div class="form-group full" id="cancelEditGroup" style="display:none">
+                  <button type="button" class="btn btn-secondary w-full" onclick="cancelEdit()">
+                    Annulla Modifica
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Right side: Table + Charts -->
+          <div class="journal-right">
+            <!-- Filters -->
+            <div class="filters-bar">
+              <select id="filterAsset" class="filter-input" onchange="loadTrades()">
+                <option value="">Tutti gli asset</option>
+                <option value="XAU/USD">XAU/USD</option>
+                <option value="BTC/USD">BTC/USD</option>
+                <option value="EUR/USD">EUR/USD</option>
+                <option value="Petrolio">Petrolio</option>
+                <option value="S&P500">S&P 500</option>
+              </select>
+              <input type="month" id="filterMonth" class="filter-input" onchange="loadTrades()">
+              <select id="filterPnl" class="filter-input" onchange="filterTradesLocally()">
+                <option value="">Tutti</option>
+                <option value="profit">Solo Profitti</option>
+                <option value="loss">Solo Perdite</option>
+              </select>
+            </div>
+
+            <!-- Trade Table -->
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th onclick="sortTrades('date')">Data</th>
+                    <th onclick="sortTrades('asset')">Asset</th>
+                    <th onclick="sortTrades('type')">Tipo</th>
+                    <th onclick="sortTrades('entry_price')">Entrata</th>
+                    <th onclick="sortTrades('exit_price')">Uscita</th>
+                    <th onclick="sortTrades('pnl')">P/L ($)</th>
+                    <th onclick="sortTrades('pnl_percent')">P/L (%)</th>
+                    <th>Note</th>
+                    <th>Azioni</th>
+                  </tr>
+                </thead>
+                <tbody id="tradesTableBody">
+                  <tr>
+                    <td colspan="9">
+                      <div class="empty-state">
+                        <div class="empty-state-icon">
+                          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                        </div>
+                        <p>Nessuna operazione registrata</p>
+                        <small style="color:var(--text-faint)">Inizia aggiungendo la tua prima operazione</small>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="section mt-6">
+              <h2 class="section-title">Report Performance</h2>
+              <div class="grid-2">
+                <div class="chart-container">
+                  <div class="chart-title">P/L Mensile</div>
+                  <div class="chart-area">
+                    <canvas id="monthlyPnlChart"></canvas>
+                  </div>
+                </div>
+                <div class="chart-container">
+                  <div class="chart-title">Curva Equity</div>
+                  <div class="chart-area">
+                    <canvas id="equityCurveChart"></canvas>
+                  </div>
+                </div>
+              </div>
+              <div class="grid-2 mt-4">
+                <div class="chart-container">
+                  <div class="chart-title">P/L per Asset</div>
+                  <div class="chart-area">
+                    <canvas id="assetBreakdownChart"></canvas>
+                  </div>
+                </div>
+                <div class="grid-2" style="display:grid;gap:var(--space-4);">
+                  <div class="card" id="bestTradeCard">
+                    <div class="card-title" style="margin-bottom:var(--space-3)">
+                      <i data-lucide="trophy" style="width:16px;height:16px;color:var(--profit)"></i>
+                      Miglior Trade
+                    </div>
+                    <div class="text-faint" style="font-size:var(--text-xs)">Nessun dato</div>
+                  </div>
+                  <div class="card" id="worstTradeCard">
+                    <div class="card-title" style="margin-bottom:var(--space-3)">
+                      <i data-lucide="alert-circle" style="width:16px;height:16px;color:var(--loss)"></i>
+                      Peggior Trade
+                    </div>
+                    <div class="text-faint" style="font-size:var(--text-xs)">Nessun dato</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- ===== MOBILE BOTTOM NAV ===== -->
+    <nav class="mobile-nav" aria-label="Navigazione mobile">
+      <div class="mobile-nav-inner">
+        <button class="mobile-nav-item active" data-page="news" onclick="navigateTo('news')">
+          <i data-lucide="newspaper" style="width:20px;height:20px"></i>
+          <span>Notizie</span>
+        </button>
+        <button class="mobile-nav-item" data-page="geopolitics" onclick="navigateTo('geopolitics')">
+          <i data-lucide="globe-2" style="width:20px;height:20px"></i>
+          <span>Geo</span>
+        </button>
+        <button class="mobile-nav-item" data-page="assets" onclick="navigateTo('assets')">
+          <i data-lucide="bar-chart-3" style="width:20px;height:20px"></i>
+          <span>Asset</span>
+        </button>
+        <button class="mobile-nav-item" data-page="journal" onclick="navigateTo('journal')">
+          <i data-lucide="book-open" style="width:20px;height:20px"></i>
+          <span>Diario</span>
+        </button>
+      </div>
+    </nav>
+
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
